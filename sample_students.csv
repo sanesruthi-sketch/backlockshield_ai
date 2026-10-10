@@ -1,0 +1,8 @@
+roll_number,full_name,email,department,semester,cgpa,attendance_percent,avg_grade_percent
+23CS012,Marcus Vance,m.vance@campus.edu,Computer Science,Semester 6,2.65,62.4,58.2
+23CS035,Sophia Patel,s.patel@campus.edu,Computer Science,Semester 6,2.90,69.1,64.0
+23CS048,Alex Rivera,a.rivera@campus.edu,Computer Science,Semester 6,3.78,87.5,85.2
+23CS051,Liam Chen,l.chen@campus.edu,Computer Science,Semester 6,3.15,74.0,73.5
+23CS019,Emma Watson,e.watson@campus.edu,Computer Science,Semester 6,3.95,96.0,94.8
+23CS077,Jordan Taylor,j.taylor@campus.edu,Computer Science,Semester 6,3.82,93.5,91.2
+23CS099,David Kim,d.kim@campus.edu,Computer Science,Semester 6,3.65,88.0,84.5

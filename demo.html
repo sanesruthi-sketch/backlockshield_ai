@@ -1,0 +1,2204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CampusIQ — AI Student Success & Predictive Retention Platform</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- React 18, ReactDOM & Babel with Cloudflare CDN for Ultra-Reliable Execution -->
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+  <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.10/babel.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .glass-panel { background: rgba(255, 255, 255, 0.92); backdrop-filter: blur(12px); border: 1px solid rgba(226, 232, 240, 0.8); }
+    .ai-gradient { background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%); }
+    .pulse-alert { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-500 selection:text-white">
+  <div id="root"></div>
+
+  <script type="text/babel" data-presets="react,env">
+    const { useState, useEffect } = React;
+
+    // --- Mock Academic Data ---
+    const studentData = {
+      name: "Alex Rivera",
+      rollNumber: "23CS048",
+      email: "a.rivera@campus.edu",
+      cgpa: 3.78,
+      department: "Computer Science & Engineering",
+      semester: "Semester 6",
+      retentionProb: 94.2,
+      attendance: 87.5,
+      assignmentRate: 92.0,
+      riskScore: 28.4,
+      riskCategory: "Low",
+    };
+
+    const initialCourses = [
+      { code: "MA-204", name: "Applied Linear Algebra", credits: 4, grade: 67.4, letter: "C+", attendance: 71.0, risk: "Critical", instructor: "Prof. Elena Rostova", assignments: "4/7" },
+      { code: "CS-301", name: "Algorithms & Data Structures", credits: 4, grade: 78.8, letter: "B", attendance: 82.5, risk: "Moderate", instructor: "Dr. James Thorne", assignments: "6/7" },
+      { code: "AI-401", name: "Machine Learning & Neural Nets", credits: 4, grade: 94.2, letter: "A", attendance: 95.0, risk: "Low", instructor: "Dr. Evelyn Vance", assignments: "7/7" },
+      { code: "CS-312", name: "Distributed Database Systems", credits: 3, grade: 91.5, letter: "A-", attendance: 96.5, risk: "Low", instructor: "Prof. Alan Turing", assignments: "6/6" },
+      { code: "CS-305", name: "Computer Networks & Protocols", credits: 3, grade: 88.0, letter: "B+", attendance: 93.3, risk: "Low", instructor: "Dr. Radia Perlman", assignments: "5/5" },
+    ];
+
+    const initialTopics = [
+      { id: 1, course: "MA-204", topic: "Singular Value Decomposition (SVD)", mastery: 42.0, status: "priority learning gap", attempts: 2 },
+      { id: 2, course: "MA-204", topic: "Eigenvalue & Diagonalization", mastery: 58.5, status: "needs practice", attempts: 3 },
+      { id: 3, course: "CS-301", topic: "Dynamic Programming Memoization", mastery: 64.0, status: "needs practice", attempts: 4 },
+      { id: 4, course: "AI-401", topic: "Convolutional Neural Networks (CNN)", mastery: 92.0, status: "provisional mastery", attempts: 5 },
+      { id: 5, course: "CS-312", topic: "Raft Distributed Consensus", mastery: 88.0, status: "provisional mastery", attempts: 4 },
+      { id: 6, course: "CS-305", topic: "BGP Routing & Peering", mastery: null, status: "NOT ASSESSED", attempts: 0 },
+    ];
+
+    const initialTasks = [
+      { id: 1, day: "Today (Saturday)", task: "Review Singular Value Decomposition (SVD) proofs", topic: "MA-204 SVD", plannedMinutes: 45, actualMinutes: 0, completed: false, priority: "High" },
+      { id: 2, day: "Tomorrow (Sunday)", task: "Solve 4 Eigenvalue diagonalization drill exercises", topic: "MA-204 Eigenvalues", plannedMinutes: 45, actualMinutes: 0, completed: false, priority: "High" },
+      { id: 3, day: "Monday", task: "Complete CS-301 Dynamic Programming Knapsack lab", topic: "CS-301 DP", plannedMinutes: 60, actualMinutes: 0, completed: false, priority: "Medium" },
+      { id: 4, day: "Tuesday", task: "Watch CampusIQ 3D Matrix Transformations walkthrough", topic: "MA-204 Matrices", plannedMinutes: 30, actualMinutes: 0, completed: false, priority: "High" },
+      { id: 5, day: "Wednesday", task: "Submit AI-401 PyTorch Transfer Learning milestone", topic: "AI-401 CNN", plannedMinutes: 90, actualMinutes: 90, completed: true, priority: "Low" },
+    ];
+
+    const cohortStudents = [
+      { id: 1, name: "Marcus Vance", roll: "23CS012", cgpa: 2.65, attendance: 62.4, grade: 58.2, riskScore: 78.4, risk: "Critical" },
+      { id: 2, name: "Sophia Patel", roll: "23CS035", cgpa: 2.90, attendance: 69.1, grade: 64.0, riskScore: 61.2, risk: "High" },
+      { id: 3, name: "Alex Rivera", roll: "23CS048", cgpa: 3.78, attendance: 87.5, grade: 85.2, riskScore: 28.4, risk: "Low" },
+      { id: 4, name: "Liam Chen", roll: "23CS051", cgpa: 3.15, attendance: 74.0, grade: 73.5, riskScore: 42.1, risk: "Moderate" },
+      { id: 5, name: "Emma Watson", roll: "23CS019", cgpa: 3.95, attendance: 96.0, grade: 94.8, riskScore: 8.5, risk: "Low" },
+    ];
+
+    function App() {
+      const [currentUser, setCurrentUser] = useState(studentData);
+      const [currentRole, setCurrentRole] = useState('student'); // 'student', 'faculty', 'admin'
+      const [activeTab, setActiveTab] = useState('auth'); // 'overview', 'twin', 'planner', 'cohort', 'admin', 'auth'
+      const [authMode, setAuthMode] = useState('login'); // 'login', 'signup', 'fastpass'
+      const [authEmail, setAuthEmail] = useState('a.rivera@campus.edu');
+      const [authPassword, setAuthPassword] = useState('password123');
+      const [rememberMe, setRememberMe] = useState(true);
+      const [showPassword, setShowPassword] = useState(false);
+      const [authNotification, setAuthNotification] = useState(null);
+      const [authError, setAuthError] = useState('');
+      const [showForgotModal, setShowForgotModal] = useState(false);
+      const [isSessionActive, setIsSessionActive] = useState(true);
+      const [lastSignedOutUser, setLastSignedOutUser] = useState(null);
+      const [sessionStartTime, setSessionStartTime] = useState(new Date().toLocaleTimeString());
+      const [registeredUsers, setRegisteredUsers] = useState([
+        { email: 'a.rivera@campus.edu', password: 'password123', name: 'Alex Rivera', rollNumber: '23CS048', cgpa: 3.78, department: 'Computer Science & Engineering', semester: 'Semester 6', attendance: 87.5, riskCategory: 'Low', riskScore: 28.4 },
+        { email: 'm.vance@campus.edu', password: 'password123', name: 'Marcus Vance', rollNumber: '23CS012', cgpa: 2.65, department: 'Computer Science & Engineering', semester: 'Semester 6', attendance: 62.4, riskCategory: 'Critical', riskScore: 78.4 },
+        { email: 's.patel@campus.edu', password: 'password123', name: 'Sophia Patel', rollNumber: '23CS035', cgpa: 2.90, department: 'Computer Science & Engineering', semester: 'Semester 6', attendance: 69.1, riskCategory: 'High', riskScore: 61.2 },
+      ]);
+      const [signUpForm, setSignUpForm] = useState({
+        name: '',
+        rollNumber: '',
+        email: '',
+        department: 'Computer Science & Engineering',
+        semester: 'Semester 6',
+        targetCgpa: '3.80',
+        password: '',
+        confirmPassword: '',
+        agreeTerms: true
+      });
+
+      const [topics, setTopics] = useState(initialTopics);
+      const [tasks, setTasks] = useState(initialTasks);
+      const [showQuizModal, setShowQuizModal] = useState(false);
+      const [quizSubmitted, setQuizSubmitted] = useState(false);
+      const [selectedAnswer, setSelectedAnswer] = useState(null);
+      const [showCourseModal, setShowCourseModal] = useState(null);
+      const [showInterveneModal, setShowInterveneModal] = useState(null);
+      const [showCopilot, setShowCopilot] = useState(false);
+      const [copilotMessages, setCopilotMessages] = useState([
+        { sender: 'ai', text: `Hello ${studentData.name}! I am CampusIQ Copilot. I've analyzed your Spring 2026 course records. You have strong momentum, but MA-204 (Applied Linear Algebra) has dropped to 71.0% attendance and needs SVD review. What would you like to examine?` }
+      ]);
+      const [copilotInput, setCopilotInput] = useState('');
+      const [csvValidated, setCsvValidated] = useState(false);
+      const [csvCommitted, setCsvCommitted] = useState(false);
+      const [mongoStatus, setMongoStatus] = useState({ connected: false, checking: true, cluster: 'blai.dxi8wl7.mongodb.net', db: 'students', coll: 'datas', stats: {} });
+      const [isSyncingMongo, setIsSyncingMongo] = useState(false);
+
+      const checkMongoStatus = async () => {
+        try {
+          const res = await fetch('http://localhost:5000/api/health');
+          if (res.ok) {
+            const data = await res.json();
+            setMongoStatus({
+              connected: data.status === 'online',
+              checking: false,
+              cluster: data.targetCluster || 'blai.dxi8wl7.mongodb.net',
+              db: data.database || 'students',
+              coll: data.collection || 'datas',
+              stats: data.stats || {}
+            });
+          } else {
+            setMongoStatus(prev => ({ ...prev, connected: false, checking: false }));
+          }
+        } catch (e) {
+          setMongoStatus(prev => ({ ...prev, connected: false, checking: false }));
+        }
+      };
+
+      useEffect(() => {
+        checkMongoStatus();
+        const interval = setInterval(checkMongoStatus, 10000);
+        return () => clearInterval(interval);
+      }, []);
+
+      const syncToMongoDB = async (customPayload) => {
+        setIsSyncingMongo(true);
+        try {
+          const payload = customPayload || {
+            source: "CampusIQ Demo Web Application",
+            action: "MANUAL_TELEMETRY_SYNC",
+            cluster: "blai.dxi8wl7.mongodb.net",
+            database: "students",
+            collection: "datas",
+            timestamp: new Date().toISOString(),
+            activeStudent: currentUser,
+            role: currentRole,
+            viewTab: activeTab,
+            topicsMasteryState: topics,
+            plannerTasksState: tasks,
+            registeredStudentsCount: registeredUsers.length
+          };
+          const res = await fetch('http://localhost:5000/api/datas', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if (res.ok) {
+            const json = await res.json();
+            setAuthNotification({
+              type: 'success',
+              message: `🍃 Persisted in MongoDB Atlas! (Collection: students.datas · ID: ${json.insertedId})`
+            });
+            await checkMongoStatus();
+          } else {
+            setAuthNotification({
+              type: 'warning',
+              message: 'MongoDB API returned error. State preserved in browser memory.'
+            });
+          }
+        } catch (err) {
+          setAuthNotification({
+            type: 'info',
+            message: 'MongoDB Atlas API offline on port 5000. Data safely stored in browser memory.'
+          });
+        } finally {
+          setIsSyncingMongo(false);
+        }
+      };
+
+      // Student Sign In Submission
+      const handleLoginSubmit = (e) => {
+        if (e) e.preventDefault();
+        setAuthError('');
+        const trimmedEmail = authEmail.trim().toLowerCase();
+
+        if (!trimmedEmail || !trimmedEmail.includes('@')) {
+          setAuthError('Please enter a valid university email address.');
+          return;
+        }
+
+        if (!authPassword) {
+          setAuthError('Please enter your account password.');
+          return;
+        }
+
+        const match = registeredUsers.find(u => u.email.toLowerCase() === trimmedEmail);
+        if (match) {
+          setCurrentUser(match);
+          setIsSessionActive(true);
+          setCurrentRole('student');
+          setActiveTab('overview');
+          setAuthNotification({
+            type: 'success',
+            message: `Welcome back, ${match.name}! Your Spring 2026 student telemetry is loaded.`
+          });
+          return;
+        }
+
+        // Generic fallback for any email entered in demo
+        const generatedName = trimmedEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/(^\w|\s\w)/g, m => m.toUpperCase()) || "Student";
+        const newStudent = {
+          name: generatedName,
+          rollNumber: "23CS" + Math.floor(100 + Math.random() * 900),
+          email: trimmedEmail,
+          cgpa: 3.75,
+          department: "Computer Science & Engineering",
+          semester: "Semester 6",
+          retentionProb: 92.5,
+          attendance: 88.0,
+          assignmentRate: 90.0,
+          riskScore: 25.0,
+          riskCategory: "Low"
+        };
+        setRegisteredUsers(prev => [...prev, newStudent]);
+        setCurrentUser(newStudent);
+        setIsSessionActive(true);
+        setCurrentRole('student');
+        setActiveTab('overview');
+        setAuthNotification({
+          type: 'success',
+          message: `Authenticated as ${newStudent.name} (${newStudent.rollNumber}).`
+        });
+      };
+
+      // Student Sign Up Submission
+      const handleSignUpSubmit = (e) => {
+        if (e) e.preventDefault();
+        setAuthError('');
+
+        if (!signUpForm.name.trim()) {
+          setAuthError('Please provide your Full Name.');
+          return;
+        }
+        if (!signUpForm.rollNumber.trim()) {
+          setAuthError('Please enter your Student ID / Roll Number.');
+          return;
+        }
+        if (!signUpForm.email.trim() || !signUpForm.email.includes('@')) {
+          setAuthError('Please provide a valid university email address.');
+          return;
+        }
+        if (!signUpForm.password || signUpForm.password.length < 6) {
+          setAuthError('Password must be at least 6 characters long.');
+          return;
+        }
+        if (signUpForm.password !== signUpForm.confirmPassword) {
+          setAuthError('Passwords do not match. Please re-enter.');
+          return;
+        }
+        if (!signUpForm.agreeTerms) {
+          setAuthError('Please accept the CampusIQ academic telemetry guidelines.');
+          return;
+        }
+
+        const newStudent = {
+          name: signUpForm.name.trim(),
+          rollNumber: signUpForm.rollNumber.trim().toUpperCase(),
+          email: signUpForm.email.trim().toLowerCase(),
+          password: signUpForm.password,
+          department: signUpForm.department,
+          semester: signUpForm.semester,
+          cgpa: parseFloat(signUpForm.targetCgpa) || 3.80,
+          retentionProb: 95.0,
+          attendance: 92.0,
+          assignmentRate: 94.0,
+          riskScore: 18.0,
+          riskCategory: 'Low'
+        };
+
+        setRegisteredUsers(prev => [...prev, newStudent]);
+        setCurrentUser(newStudent);
+        setIsSessionActive(true);
+        setCurrentRole('student');
+        setActiveTab('overview');
+        setAuthNotification({
+          type: 'success',
+          message: `🎉 Account successfully created for ${newStudent.name} (${newStudent.rollNumber})! Digital Learning Twin initialized.`
+        });
+
+        setCopilotMessages([
+          { sender: 'ai', text: `Hello **${newStudent.name}**! Welcome to CampusIQ. Your student account (${newStudent.rollNumber} · ${newStudent.department}) is now active. I am your personal AI academic success advisor. How can I assist you today?` }
+        ]);
+
+        // Persist student account into MongoDB Atlas cluster
+        fetch('http://localhost:5000/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(newStudent)
+        }).then(r => r.json()).then(res => {
+          if (res.success) {
+            setAuthNotification({
+              type: 'success',
+              message: `🎉 Student account for ${newStudent.name} saved to MongoDB Atlas (Database: students, Coll: datas)!`
+            });
+            checkMongoStatus();
+          }
+        }).catch(err => {
+          console.info('MongoDB offline fallback: saved in browser local memory', err);
+        });
+      };
+
+      const handleQuickSelectStudent = (studentObj) => {
+        setCurrentUser(studentObj);
+        setIsSessionActive(true);
+        setCurrentRole('student');
+        setActiveTab('overview');
+        setAuthNotification({
+          type: 'success',
+          message: `Active persona switched to ${studentObj.name} (${studentObj.rollNumber}).`
+        });
+      };
+
+      // Student Sign Out Handler
+      const handleInitiateSignOut = () => {
+        setActiveTab('auth');
+        setAuthMode('signout');
+        setAuthError('');
+      };
+
+      const handleConfirmSignOut = (clearCache = false) => {
+        const departingUser = currentUser;
+        setLastSignedOutUser(departingUser);
+        setIsSessionActive(false);
+        setAuthNotification({
+          type: 'info',
+          message: `👋 You have signed out successfully from ${departingUser.name} (${departingUser.rollNumber}). Session closed.`
+        });
+
+        // Audit sign-out event in MongoDB Atlas
+        fetch('http://localhost:5000/api/datas', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            source: "CampusIQ Demo Web Application",
+            action: "STUDENT_SIGNOUT",
+            cluster: "blai.dxi8wl7.mongodb.net",
+            database: "students",
+            collection: "datas",
+            timestamp: new Date().toISOString(),
+            student: departingUser,
+            clearedLocalCache: clearCache
+          })
+        }).then(r => r.json()).then(res => {
+          checkMongoStatus();
+        }).catch(err => {
+          console.info('MongoDB offline fallback for signout log', err);
+        });
+      };
+
+      const handleReLogin = (studentObj) => {
+        const target = studentObj || lastSignedOutUser || registeredUsers[0];
+        setCurrentUser(target);
+        setIsSessionActive(true);
+        setCurrentRole('student');
+        setActiveTab('overview');
+        setAuthNotification({
+          type: 'success',
+          message: `🎉 Welcome back, ${target.name}! Session restored successfully.`
+        });
+      };
+
+      // Quiz grading & EMA calculation
+      const handleQuizSubmit = () => {
+        if (!selectedAnswer) return;
+        setQuizSubmitted(true);
+        // EMA update: 0.7 * 42.0 + 0.3 * 100 = 59.4%
+        setTopics(prev => prev.map(t => {
+          if (t.id === 1) {
+            const newMastery = Math.round((0.7 * t.mastery + 0.3 * 100) * 10) / 10;
+            return {
+              ...t,
+              mastery: newMastery,
+              status: newMastery >= 70 ? 'provisional mastery' : newMastery >= 50 ? 'needs practice' : 'priority learning gap',
+              attempts: t.attempts + 1
+            };
+          }
+          return t;
+        }));
+
+        // Persist quiz mastery update into MongoDB Atlas
+        fetch('http://localhost:5000/api/learning-twin/update', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topicId: 1, quizScore: 100 })
+        }).then(() => checkMongoStatus()).catch(() => {});
+      };
+
+      const handleTaskToggle = (taskId) => {
+        setTasks(prev => prev.map(t => {
+          if (t.id === taskId) {
+            const nextDone = !t.completed;
+            return { ...t, completed: nextDone, actualMinutes: nextDone ? t.plannedMinutes : 0 };
+          }
+          return t;
+        }));
+
+        // Persist task toggle state into MongoDB Atlas
+        fetch(`http://localhost:5000/api/planner/tasks/${taskId}/toggle`, {
+          method: 'POST'
+        }).then(() => checkMongoStatus()).catch(() => {});
+      };
+
+      const handleSendCopilot = (msgText) => {
+        const text = msgText || copilotInput;
+        if (!text.trim()) return;
+        const newMsg = { sender: 'user', text };
+        setCopilotMessages(prev => [...prev, newMsg]);
+        setCopilotInput('');
+
+        setTimeout(() => {
+          let reply = "";
+          const lower = text.toLowerCase();
+          if (lower.includes("gpa") || lower.includes("raise") || lower.includes("3.9")) {
+            reply = "Your current CGPA is 3.78. To cross the 3.90 threshold, prioritize MA-204 (Applied Linear Algebra): raising it from C+ to A- yields a +0.09 CGPA uplift! Additionally, maintaining A's in AI-401 and CS-312 locks in your trajectory.";
+          } else if (lower.includes("linear algebra") || lower.includes("svd") || lower.includes("ma-204")) {
+            reply = "In MA-204, attendance is currently 71.0% (violating the 75% institutional requirement). Quiz 3 on Singular Value Decomposition scored 42%. I recommend: 1) Take the diagnostic quiz on the Learning Twin tab, 2) Attend Prof. Rostova's office hours on Thursday at 2 PM.";
+          } else {
+            reply = "Based on verified student telemetry: Cumulative GPA is 3.78 (Dean's List). Focus on remediating MA-204 Linear Algebra to protect your semester standing.";
+          }
+          setCopilotMessages(prev => [...prev, { sender: 'ai', text: reply }]);
+        }, 500);
+      };
+
+      return (
+        <div className="min-h-screen bg-slate-50 flex">
+          {/* Sidebar */}
+          <aside className="w-64 bg-slate-900 text-white flex flex-col justify-between shrink-0 shadow-xl">
+            <div>
+              <div className="p-6 border-b border-slate-800 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-500 to-indigo-700 flex items-center justify-center font-bold text-lg shadow-md shadow-indigo-500/30">
+                  IQ
+                </div>
+                <div>
+                  <h1 className="font-bold text-lg tracking-tight text-white">CampusIQ</h1>
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-indigo-400 bg-indigo-950/80 px-2 py-0.5 rounded border border-indigo-800">HacXLerate '26</span>
+                </div>
+              </div>
+
+              {/* Role Switcher */}
+              <div className="p-4 bg-slate-800/60 m-3 rounded-xl border border-slate-700/60">
+                <label className="text-xs uppercase font-mono tracking-wider text-slate-400 block mb-2">Switch Active View:</label>
+                <div className="grid grid-cols-3 gap-1 bg-slate-900 p-1 rounded-lg text-xs">
+                  <button 
+                    onClick={() => { setCurrentRole('student'); setActiveTab('overview'); }}
+                    className={`py-1.5 rounded font-medium transition ${currentRole === 'student' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                    Student
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentRole('faculty'); setActiveTab('cohort'); }}
+                    className={`py-1.5 rounded font-medium transition ${currentRole === 'faculty' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                    Faculty
+                  </button>
+                  <button 
+                    onClick={() => { setCurrentRole('admin'); setActiveTab('admin'); }}
+                    className={`py-1.5 rounded font-medium transition ${currentRole === 'admin' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}>
+                    Admin
+                  </button>
+                </div>
+              </div>
+
+              {/* Navigation Items */}
+              <nav className="p-4 space-y-1.5">
+                <button 
+                  onClick={() => setActiveTab('auth')}
+                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-bold transition ${activeTab === 'auth' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-600/30' : 'text-indigo-300 hover:bg-slate-800 border border-indigo-900/60'}`}>
+                  <span className="flex items-center gap-2">
+                    <span>🔐</span>
+                    <span>Student Login & Sign Up</span>
+                  </span>
+                  <span className="text-[10px] font-mono uppercase tracking-wider bg-indigo-950 px-1.5 py-0.5 rounded border border-indigo-700/80 text-indigo-300">Portal</span>
+                </button>
+
+                {currentRole === 'student' && (
+                  <>
+                    <button 
+                      onClick={() => setActiveTab('overview')}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'overview' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}>
+                      📊 Academic Dashboard
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('twin')}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'twin' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}>
+                      🧬 Digital Learning Twin
+                    </button>
+                    <button 
+                      onClick={() => setActiveTab('planner')}
+                      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'planner' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}>
+                      📅 7-Day Study Planner
+                    </button>
+                  </>
+                )}
+
+                {currentRole === 'faculty' && (
+                  <button 
+                    onClick={() => setActiveTab('cohort')}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'cohort' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}>
+                    👥 Cohort Risk Directory
+                  </button>
+                )}
+
+                {currentRole === 'admin' && (
+                  <button 
+                    onClick={() => setActiveTab('admin')}
+                    className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition ${activeTab === 'admin' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-300 hover:bg-slate-800'}`}>
+                    🛡️ CSV Quality & Audit
+                  </button>
+                )}
+
+                <div className="pt-2 border-t border-slate-800/80 mt-2">
+                  <button 
+                    onClick={handleInitiateSignOut}
+                    className="w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-semibold text-rose-300 hover:text-white hover:bg-rose-950/50 border border-rose-900/40 transition">
+                    <span className="flex items-center gap-2">
+                      <span>🚪</span>
+                      <span>Sign Out Session</span>
+                    </span>
+                    <span className="text-[10px] font-mono uppercase tracking-wider bg-rose-950 px-1.5 py-0.5 rounded border border-rose-800 text-rose-300">
+                      {isSessionActive ? 'Active' : 'Ended'}
+                    </span>
+                  </button>
+                </div>
+              </nav>
+            </div>
+
+            {/* Bottom MongoDB Status Card */}
+            <div className="p-4 border-t border-slate-800 bg-slate-950/60">
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-2">
+                  <span className={`w-2.5 h-2.5 rounded-full ${mongoStatus && mongoStatus.connected ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></span>
+                  <span className={`text-xs font-mono font-bold ${mongoStatus && mongoStatus.connected ? 'text-emerald-400' : 'text-amber-300'}`}>
+                    {mongoStatus && mongoStatus.connected ? 'MongoDB Atlas Online' : 'MongoDB (Standalone)'}
+                  </span>
+                </div>
+                {mongoStatus && mongoStatus.connected && (
+                  <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800">
+                    {(mongoStatus.stats && mongoStatus.stats.datas) ? mongoStatus.stats.datas : 0} docs
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] font-mono text-slate-400 truncate">blai.dxi8wl7.mongodb.net</p>
+              <p className="text-[10px] text-slate-400 mt-0.5">DB: <span className="text-slate-200 font-mono">students</span> · Coll: <span className="text-emerald-400 font-mono">datas</span></p>
+              <button 
+                onClick={() => syncToMongoDB()} 
+                disabled={isSyncingMongo}
+                className="mt-2.5 w-full py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-[11px] transition flex items-center justify-center gap-1.5 shadow-md shadow-emerald-950/40 cursor-pointer">
+                <span>{isSyncingMongo ? '⏳ Storing...' : '☁️ Sync to MongoDB Atlas'}</span>
+              </button>
+            </div>
+          </aside>
+
+          {/* Main Content Area */}
+          <main className="flex-1 flex flex-col overflow-y-auto">
+            {/* Header */}
+            <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between sticky top-0 z-20">
+              <div className="flex items-center gap-4">
+                <span className="text-sm font-medium text-slate-500">Active Academic Term:</span>
+                <span className="px-2.5 py-1 rounded-full bg-indigo-50 text-indigo-700 text-xs font-semibold border border-indigo-200">Spring 2026 (Week 9)</span>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <div className={`hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-mono ${mongoStatus && mongoStatus.connected ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-slate-50 border-slate-200 text-slate-600'}`}>
+                  <span className={`w-2 h-2 rounded-full ${mongoStatus && mongoStatus.connected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`}></span>
+                  <span className="font-semibold">{mongoStatus && mongoStatus.connected ? '🍃 MongoDB Atlas Connected' : '🍃 MongoDB Atlas (Port 5000)'}</span>
+                </div>
+                <button 
+                  onClick={() => syncToMongoDB()} 
+                  disabled={isSyncingMongo}
+                  title="Store full telemetry snapshot into MongoDB Atlas students.datas collection"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow transition cursor-pointer">
+                  <span>☁️</span>
+                  <span>{isSyncingMongo ? 'Syncing...' : 'Sync to Atlas'}</span>
+                </button>
+                <button 
+                  onClick={() => setActiveTab('auth')}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 bg-indigo-50/70 text-indigo-700 hover:bg-indigo-100 text-xs font-bold shadow-xs transition">
+                  <span>🔑</span>
+                  <span>Student Portal</span>
+                </button>
+                <button 
+                  onClick={handleInitiateSignOut}
+                  title="Sign out of student account & end session"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-bold shadow-xs transition cursor-pointer">
+                  <span>🚪</span>
+                  <span>Sign Out</span>
+                  {isSessionActive && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                  )}
+                </button>
+                <button 
+                  onClick={() => setShowCopilot(true)}
+                  className="flex items-center gap-2 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-semibold shadow hover:opacity-95 transition">
+                  ✨ Ask AI Advisor
+                </button>
+                <div className="flex items-center gap-3 pl-3 border-l border-slate-200">
+                  <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                    {currentRole === 'student' ? (currentUser.name ? currentUser.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() : 'AR') : currentRole === 'faculty' ? 'EV' : 'AD'}
+                  </div>
+                  <div>
+                    <div className="text-xs font-bold text-slate-800">
+                      {currentRole === 'student' ? currentUser.name : currentRole === 'faculty' ? 'Dr. Elena Vance' : 'Registrar Admin'}
+                    </div>
+                    <div className="text-[10px] text-slate-500 capitalize">{currentRole} Persona · {currentRole === 'student' ? currentUser.rollNumber : 'Active'}</div>
+                  </div>
+                </div>
+              </div>
+            </header>
+
+            {/* Body Tabs */}
+            <div className="p-8 max-w-7xl mx-auto w-full space-y-6">
+
+              {/* Notification Banner */}
+              {authNotification && (
+                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex items-center justify-between text-xs font-semibold shadow-xs animate-in fade-in">
+                  <div className="flex items-center gap-2">
+                    <span className="text-base">✨</span>
+                    <span>{authNotification.message}</span>
+                  </div>
+                  <button onClick={() => setAuthNotification(null)} className="text-emerald-700 hover:text-emerald-900 font-bold text-sm">×</button>
+                </div>
+              )}
+
+              {/* TAB 0: Student Login & Sign Up Portal Page */}
+              {activeTab === 'auth' && (
+                <div className="space-y-6 animate-in fade-in duration-200">
+                  {/* Hero Header Banner */}
+                  <div className="bg-gradient-to-r from-indigo-900 via-slate-900 to-purple-950 text-white rounded-3xl p-8 shadow-xl border border-indigo-800/40 relative overflow-hidden">
+                    <div className="absolute right-0 top-0 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-xs font-mono uppercase tracking-widest text-indigo-300 bg-indigo-950/80 px-2.5 py-1 rounded-full border border-indigo-700">
+                            CampusIQ Identity & Access Portal
+                          </span>
+                          <span className="text-xs font-mono text-emerald-400 bg-emerald-950/60 px-2.5 py-1 rounded-full border border-emerald-800/80 flex items-center gap-1.5">
+                            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                            Active Session
+                          </span>
+                        </div>
+                        <h2 className="text-2xl lg:text-3xl font-extrabold tracking-tight text-white">
+                          Student Portal: Sign In & Registration
+                        </h2>
+                        <p className="text-slate-300 text-xs sm:text-sm mt-2 max-w-2xl leading-relaxed">
+                          Sign in to access your AI Digital Learning Twin, monitor academic retention risks, and receive personalized prescriptive study schedules.
+                        </p>
+                      </div>
+
+                      <div className="bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/15 text-xs text-white shrink-0">
+                        <div className="text-[10px] uppercase font-mono tracking-wider text-indigo-200">Active Student:</div>
+                        <div className="font-bold text-sm mt-1 flex items-center gap-2">
+                          <span className={`w-2.5 h-2.5 rounded-full ${isSessionActive ? 'bg-emerald-400' : 'bg-slate-400'}`}></span>
+                          {currentUser ? currentUser.name : 'Guest'} ({currentUser ? currentUser.rollNumber : 'N/A'})
+                        </div>
+                        <div className="text-[11px] text-slate-300 mt-0.5">{currentUser ? currentUser.department : 'General'}</div>
+                        <div className="flex gap-2 mt-3">
+                          <button 
+                            onClick={() => setActiveTab('overview')}
+                            className="flex-1 py-1.5 px-3 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs transition flex items-center justify-center gap-1.5">
+                            <span>Dashboard</span>
+                            <span>→</span>
+                          </button>
+                          <button 
+                            onClick={handleInitiateSignOut}
+                            title="Sign out session"
+                            className="py-1.5 px-3 rounded-lg bg-rose-600/80 hover:bg-rose-600 text-white font-semibold text-xs transition flex items-center justify-center gap-1 cursor-pointer">
+                            <span>🚪</span>
+                            <span>Sign Out</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Mode Selector Tabs */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-200 pb-2">
+                    <div className="flex items-center gap-2 bg-slate-100 p-1.5 rounded-2xl border border-slate-200">
+                      <button
+                        onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                          authMode === 'login' 
+                            ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/80' 
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}>
+                        <span>🎓</span>
+                        <span>Student Sign In</span>
+                      </button>
+                      <button
+                        onClick={() => { setAuthMode('signup'); setAuthError(''); }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                          authMode === 'signup' 
+                            ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/80' 
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}>
+                        <span>✨</span>
+                        <span>Student Sign Up (Register)</span>
+                      </button>
+                      <button
+                        onClick={() => { setAuthMode('fastpass'); setAuthError(''); }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                          authMode === 'fastpass' 
+                            ? 'bg-white text-indigo-700 shadow-sm border border-slate-200/80' 
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}>
+                        <span>⚡</span>
+                        <span>Demo 1-Click Fast Pass</span>
+                      </button>
+                      <button
+                        onClick={() => { setAuthMode('signout'); setAuthError(''); }}
+                        className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-2 ${
+                          authMode === 'signout' 
+                            ? 'bg-white text-rose-700 shadow-sm border border-slate-200/80' 
+                            : 'text-slate-600 hover:text-slate-900'
+                        }`}>
+                        <span>🚪</span>
+                        <span>Sign Out Page</span>
+                        {isSessionActive && (
+                          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" title="Active Session Running"></span>
+                        )}
+                      </button>
+                    </div>
+
+                    <div className="text-xs text-slate-500 font-medium">
+                      Imperial Tech University · Spring 2026
+                    </div>
+                  </div>
+
+                  {/* Auth Error Banner */}
+                  {authError && (
+                    <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center justify-between animate-in fade-in">
+                      <div className="flex items-center gap-2">
+                        <span>⚠️</span>
+                        <span>{authError}</span>
+                      </div>
+                      <button onClick={() => setAuthError('')} className="text-rose-600 hover:text-rose-900 font-bold">×</button>
+                    </div>
+                  )}
+
+                  {/* MODE 1: STUDENT SIGN IN */}
+                  {authMode === 'login' && (
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                      {/* Left Form Card */}
+                      <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 shadow-sm p-8 space-y-6">
+                        <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                          <div>
+                            <h3 className="text-lg font-bold text-slate-900">Student Sign In</h3>
+                            <p className="text-xs text-slate-500 mt-0.5">Enter your verified university credentials</p>
+                          </div>
+                          <span className="text-xs font-mono bg-indigo-50 text-indigo-700 border border-indigo-200 px-2.5 py-1 rounded-full font-semibold">
+                            Student Role
+                          </span>
+                        </div>
+
+                        <form onSubmit={handleLoginSubmit} className="space-y-4 text-xs">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              University Email Address <span className="text-rose-500">*</span>
+                            </label>
+                            <div className="relative">
+                              <span className="absolute left-3.5 top-3 text-slate-400 text-sm">✉️</span>
+                              <input
+                                type="email"
+                                value={authEmail}
+                                onChange={(e) => setAuthEmail(e.target.value)}
+                                placeholder="e.g. a.rivera@campus.edu"
+                                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden transition bg-slate-50/50"
+                                required
+                              />
+                            </div>
+                            <p className="text-[11px] text-slate-400 mt-1">Pre-enrolled: a.rivera@campus.edu</p>
+                          </div>
+
+                          <div>
+                            <div className="flex items-center justify-between mb-1.5">
+                              <label className="font-bold text-slate-700">
+                                Account Password <span className="text-rose-500">*</span>
+                              </label>
+                              <button
+                                type="button"
+                                onClick={() => setShowForgotModal(true)}
+                                className="text-indigo-600 hover:text-indigo-800 text-[11px] font-semibold">
+                                Forgot password?
+                              </button>
+                            </div>
+                            <div className="relative">
+                              <span className="absolute left-3.5 top-3 text-slate-400 text-sm">🔒</span>
+                              <input
+                                type={showPassword ? 'text' : 'password'}
+                                value={authPassword}
+                                onChange={(e) => setAuthPassword(e.target.value)}
+                                placeholder="••••••••"
+                                className="w-full pl-10 pr-12 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden transition bg-slate-50/50"
+                                required
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute right-3.5 top-2.5 text-xs text-slate-400 hover:text-slate-600 font-medium">
+                                {showPassword ? 'Hide' : 'Show'}
+                              </button>
+                            </div>
+                            <p className="text-[11px] text-slate-400 mt-1">Pre-enrolled password: password123</p>
+                          </div>
+
+                          <div className="flex items-center justify-between py-1">
+                            <label className="flex items-center gap-2 text-slate-600 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={rememberMe}
+                                onChange={(e) => setRememberMe(e.target.checked)}
+                                className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 border-slate-300"
+                              />
+                              <span className="text-xs">Remember this student device for 30 days</span>
+                            </label>
+                          </div>
+
+                          <button
+                            type="submit"
+                            className="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-700 hover:to-indigo-800 text-white font-bold text-xs shadow-md shadow-indigo-600/30 transition flex items-center justify-center gap-2 cursor-pointer">
+                            <span>🚀 Sign In to Student Portal</span>
+                            <span>→</span>
+                          </button>
+                        </form>
+
+                        <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                          <span>New student at Imperial Tech?</span>
+                          <button
+                            onClick={() => { setAuthMode('signup'); setAuthError(''); }}
+                            className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                            Create student account here →
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Right Info & Quick Presets */}
+                      <div className="lg:col-span-5 space-y-4">
+                        <div className="bg-slate-900 text-white p-6 rounded-3xl border border-slate-800 shadow-md">
+                          <h4 className="font-bold text-sm text-white flex items-center gap-2">
+                            <span>⚡</span> 1-Click Enrolled Student Logins
+                          </h4>
+                          <p className="text-slate-400 text-xs mt-1">
+                            Select any pre-configured student to immediately load their live course data:
+                          </p>
+
+                          <div className="mt-4 space-y-2.5">
+                            <button
+                              onClick={() => handleQuickSelectStudent(registeredUsers[0])}
+                              className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-indigo-950/80 border border-slate-700 hover:border-indigo-600 transition flex items-center justify-between group">
+                              <div>
+                                <div className="font-bold text-xs text-white group-hover:text-indigo-300">Alex Rivera (Dean's List)</div>
+                                <div className="text-[11px] text-slate-400">Roll: 23CS048 · CGPA 3.78 · 87.5% Attendance</div>
+                              </div>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-950 text-emerald-400 border border-emerald-800">Low Risk</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleQuickSelectStudent(registeredUsers[1])}
+                              className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-rose-950/80 border border-slate-700 hover:border-rose-600 transition flex items-center justify-between group">
+                              <div>
+                                <div className="font-bold text-xs text-white group-hover:text-rose-300">Marcus Vance (Remediation Needed)</div>
+                                <div className="text-[11px] text-slate-400">Roll: 23CS012 · CGPA 2.65 · 62.4% Attendance</div>
+                              </div>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950 text-rose-400 border border-rose-800">Critical Risk</span>
+                            </button>
+
+                            <button
+                              onClick={() => handleQuickSelectStudent(registeredUsers[2])}
+                              className="w-full text-left p-3 rounded-xl bg-slate-800/80 hover:bg-amber-950/80 border border-slate-700 hover:border-amber-600 transition flex items-center justify-between group">
+                              <div>
+                                <div className="font-bold text-xs text-white group-hover:text-amber-300">Sophia Patel (Midterm Warning)</div>
+                                <div className="text-[11px] text-slate-400">Roll: 23CS035 · CGPA 2.90 · 69.1% Attendance</div>
+                              </div>
+                              <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-amber-950 text-amber-400 border border-amber-800">High Risk</span>
+                            </button>
+                          </div>
+                        </div>
+
+                        <div className="bg-indigo-50/70 p-6 rounded-3xl border border-indigo-100 text-xs space-y-2 text-indigo-900">
+                          <h5 className="font-bold text-indigo-950 flex items-center gap-2">
+                            <span>🛡️</span> Zero-Config Standalone Execution
+                          </h5>
+                          <p className="text-slate-600 text-[11px] leading-relaxed">
+                            In Standalone HTML mode, all student accounts, adaptive quiz scores, and study plans persist dynamically in browser memory with zero backend dependencies.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MODE 2: STUDENT SIGN UP */}
+                  {authMode === 'signup' && (
+                    <div className="max-w-3xl mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-sm p-8 space-y-6">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                        <div>
+                          <h3 className="text-lg font-bold text-slate-900">New Student Registration</h3>
+                          <p className="text-xs text-slate-500 mt-0.5">
+                            Create your official student account to initialize your AI Digital Learning Twin
+                          </p>
+                        </div>
+                        <span className="text-xs font-mono bg-purple-50 text-purple-700 border border-purple-200 px-2.5 py-1 rounded-full font-semibold">
+                          Spring 2026 Enrollment
+                        </span>
+                      </div>
+
+                      <form onSubmit={handleSignUpSubmit} className="space-y-4 text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              Full Name <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={signUpForm.name}
+                              onChange={(e) => setSignUpForm({...signUpForm, name: e.target.value})}
+                              placeholder="e.g. Maya Lin"
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden bg-slate-50/50"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              Roll Number / Student ID <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                              type="text"
+                              value={signUpForm.rollNumber}
+                              onChange={(e) => setSignUpForm({...signUpForm, rollNumber: e.target.value})}
+                              placeholder="e.g. 23CS089"
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden bg-slate-50/50 font-mono uppercase"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              University Email Address <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                              type="email"
+                              value={signUpForm.email}
+                              onChange={(e) => setSignUpForm({...signUpForm, email: e.target.value})}
+                              placeholder="e.g. m.lin@campus.edu"
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden bg-slate-50/50"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              Department / Major <span className="text-rose-500">*</span>
+                            </label>
+                            <select
+                              value={signUpForm.department}
+                              onChange={(e) => setSignUpForm({...signUpForm, department: e.target.value})}
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden bg-slate-50/50">
+                              <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                              <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning</option>
+                              <option value="Data Science & Analytics">Data Science & Analytics</option>
+                              <option value="Software Engineering">Software Engineering</option>
+                              <option value="Electrical & Computer Engineering">Electrical & Computer Engineering</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              Current Semester <span className="text-rose-500">*</span>
+                            </label>
+                            <select
+                              value={signUpForm.semester}
+                              onChange={(e) => setSignUpForm({...signUpForm, semester: e.target.value})}
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden bg-slate-50/50">
+                              <option value="Semester 1">Semester 1</option>
+                              <option value="Semester 2">Semester 2</option>
+                              <option value="Semester 3">Semester 3</option>
+                              <option value="Semester 4">Semester 4</option>
+                              <option value="Semester 5">Semester 5</option>
+                              <option value="Semester 6">Semester 6 (Spring 2026)</option>
+                              <option value="Semester 7">Semester 7</option>
+                              <option value="Semester 8">Semester 8</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              Target Cumulative CGPA
+                            </label>
+                            <select
+                              value={signUpForm.targetCgpa}
+                              onChange={(e) => setSignUpForm({...signUpForm, targetCgpa: e.target.value})}
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden bg-slate-50/50 font-mono">
+                              <option value="4.00">4.00 (Summa Cum Laude Target)</option>
+                              <option value="3.85">3.85 (Dean's List Target)</option>
+                              <option value="3.50">3.50 (High Academic Standing)</option>
+                              <option value="3.00">3.00 (Good Academic Standing)</option>
+                            </select>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              Password (min 6 chars) <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                              type="password"
+                              value={signUpForm.password}
+                              onChange={(e) => setSignUpForm({...signUpForm, password: e.target.value})}
+                              placeholder="••••••••"
+                              className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-600 outline-hidden bg-slate-50/50"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block font-bold text-slate-700 mb-1.5">
+                              Confirm Password <span className="text-rose-500">*</span>
+                            </label>
+                            <input
+                              type="password"
+                              value={signUpForm.confirmPassword}
+                              onChange={(e) => setSignUpForm({...signUpForm, confirmPassword: e.target.value})}
+                              placeholder="••••••••"
+                              className={`w-full px-3.5 py-2.5 rounded-xl border text-xs focus:ring-2 outline-hidden bg-slate-50/50 ${
+                                signUpForm.confirmPassword && signUpForm.password !== signUpForm.confirmPassword
+                                  ? 'border-rose-400 focus:ring-rose-500/20'
+                                  : 'border-slate-200 focus:ring-indigo-500/20 focus:border-indigo-600'
+                              }`}
+                              required
+                            />
+                            {signUpForm.confirmPassword && signUpForm.password === signUpForm.confirmPassword && (
+                              <span className="text-[11px] text-emerald-600 font-semibold mt-1 block">✓ Passwords match</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="p-3 rounded-xl bg-slate-50 border border-slate-200">
+                          <label className="flex items-start gap-2.5 text-slate-600 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={signUpForm.agreeTerms}
+                              onChange={(e) => setSignUpForm({...signUpForm, agreeTerms: e.target.checked})}
+                              className="rounded text-indigo-600 focus:ring-indigo-500 w-4 h-4 mt-0.5"
+                            />
+                            <span className="text-[11px] leading-relaxed">
+                              I agree to activate the <strong>CampusIQ Digital Learning Twin</strong>. I understand academic telemetry (course quiz attempts, attendance logs, and assignment submissions) will be evaluated to generate prescriptive early warning indicators.
+                            </span>
+                          </label>
+                        </div>
+
+                        <button
+                          type="submit"
+                          className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-bold text-xs shadow-lg shadow-indigo-600/25 transition flex items-center justify-center gap-2 cursor-pointer">
+                          <span>🎉 Create Student Account & Launch Portal</span>
+                          <span>→</span>
+                        </button>
+                      </form>
+
+                      <div className="pt-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+                        <span>Already registered with CampusIQ?</span>
+                        <button
+                          onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                          className="font-bold text-indigo-600 hover:text-indigo-800 hover:underline">
+                          Sign In to existing account →
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MODE 3: FAST PASS PERSONA CARDS */}
+                  {authMode === 'fastpass' && (
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 font-bold flex items-center justify-center text-sm">AR</span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-100 text-emerald-700 font-semibold">Dean's List</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-800">Alex Rivera</h4>
+                            <p className="text-[11px] text-slate-500">23CS048 · Computer Science</p>
+                            <div className="mt-3 text-xs space-y-1">
+                              <div className="flex justify-between text-slate-600"><span>CGPA:</span> <strong className="text-slate-800">3.78</strong></div>
+                              <div className="flex justify-between text-slate-600"><span>Attendance:</span> <strong className="text-slate-800">87.5%</strong></div>
+                              <div className="flex justify-between text-slate-600"><span>Risk Flag:</span> <span className="text-amber-600 font-semibold">MA-204</span></div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleQuickSelectStudent(registeredUsers[0])}
+                            className="mt-4 w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition">
+                            Sign In as Alex
+                          </button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="w-10 h-10 rounded-xl bg-rose-100 text-rose-700 font-bold flex items-center justify-center text-sm">MV</span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-100 text-rose-700 font-semibold">Critical Risk</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-800">Marcus Vance</h4>
+                            <p className="text-[11px] text-slate-500">23CS012 · Computer Science</p>
+                            <div className="mt-3 text-xs space-y-1">
+                              <div className="flex justify-between text-slate-600"><span>CGPA:</span> <strong className="text-slate-800">2.65</strong></div>
+                              <div className="flex justify-between text-slate-600"><span>Attendance:</span> <strong className="text-rose-600 font-bold">62.4%</strong></div>
+                              <div className="flex justify-between text-slate-600"><span>Deficit:</span> <span className="text-rose-600 font-semibold">&lt;75% Threshold</span></div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => handleQuickSelectStudent(registeredUsers[1])}
+                            className="mt-4 w-full py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs transition">
+                            Sign In as Marcus
+                          </button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="w-10 h-10 rounded-xl bg-purple-100 text-purple-700 font-bold flex items-center justify-center text-sm">EV</span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-100 text-purple-700 font-semibold">Faculty Advisor</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-800">Dr. Evelyn Vance</h4>
+                            <p className="text-[11px] text-slate-500">Faculty Chair · School of Computing</p>
+                            <div className="mt-3 text-xs space-y-1">
+                              <div className="flex justify-between text-slate-600"><span>Cohort Count:</span> <strong className="text-slate-800">5 Students</strong></div>
+                              <div className="flex justify-between text-slate-600"><span>Critical Alerts:</span> <strong className="text-rose-600">2 Pending</strong></div>
+                              <div className="flex justify-between text-slate-600"><span>Access:</span> <span className="text-purple-600 font-semibold">Interventions</span></div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => { setCurrentRole('faculty'); setActiveTab('cohort'); }}
+                            className="mt-4 w-full py-2 rounded-xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs transition">
+                            Enter Faculty View
+                          </button>
+                        </div>
+
+                        <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex flex-col justify-between">
+                          <div>
+                            <div className="flex items-center justify-between mb-3">
+                              <span className="w-10 h-10 rounded-xl bg-slate-100 text-slate-700 font-bold flex items-center justify-center text-sm">JH</span>
+                              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-semibold">Administrator</span>
+                            </div>
+                            <h4 className="font-bold text-sm text-slate-800">Dean Jonathan Hayes</h4>
+                            <p className="text-[11px] text-slate-500">Registrar & Institutional Audit</p>
+                            <div className="mt-3 text-xs space-y-1">
+                              <div className="flex justify-between text-slate-600"><span>CSV Ingestion:</span> <strong className="text-slate-800">Available</strong></div>
+                              <div className="flex justify-between text-slate-600"><span>Audit Trail:</span> <strong className="text-slate-800">Immutable</strong></div>
+                              <div className="flex justify-between text-slate-600"><span>Security:</span> <span className="text-emerald-600 font-semibold">Full Admin</span></div>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => { setCurrentRole('admin'); setActiveTab('admin'); }}
+                            className="mt-4 w-full py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs transition">
+                            Enter Admin View
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* MODE 4: STUDENT SIGN OUT & SESSION MANAGEMENT */}
+                  {authMode === 'signout' && (
+                    <div className="space-y-6">
+                      {isSessionActive ? (
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                          {/* Left: Active Session Information & Confirm Sign Out */}
+                          <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200/90 shadow-sm p-8 space-y-6">
+                            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+                              <div>
+                                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                  <span>🚪</span>
+                                  <span>Sign Out & Terminate Active Session</span>
+                                </h3>
+                                <p className="text-xs text-slate-500 mt-0.5">
+                                  Review your active session details before safely disconnecting.
+                                </p>
+                              </div>
+                              <span className="text-xs font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Session Active
+                              </span>
+                            </div>
+
+                            {/* Active Student Card */}
+                            <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-indigo-950 text-white shadow-md relative overflow-hidden">
+                              <div className="absolute right-0 top-0 w-48 h-48 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none"></div>
+                              <div className="relative z-10 flex items-center gap-4">
+                                <div className="w-14 h-14 rounded-2xl bg-indigo-600/60 border border-indigo-400/30 flex items-center justify-center font-bold text-xl text-white shadow-inner">
+                                  {currentUser && currentUser.name ? currentUser.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() : 'AR'}
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <h4 className="font-bold text-base text-white">{currentUser && currentUser.name}</h4>
+                                    <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-indigo-500/30 text-indigo-200 border border-indigo-400/30">
+                                      {currentUser && currentUser.rollNumber}
+                                    </span>
+                                  </div>
+                                  <p className="text-xs text-slate-300 mt-0.5">{currentUser && currentUser.department} · {currentUser && currentUser.semester}</p>
+                                  <p className="text-[11px] font-mono text-indigo-300/80 mt-1">{currentUser && currentUser.email}</p>
+                                </div>
+                              </div>
+
+                              <div className="mt-5 pt-4 border-t border-white/10 grid grid-cols-3 gap-3 text-center">
+                                <div className="bg-white/5 rounded-xl p-2.5">
+                                  <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Cumulative GPA</div>
+                                  <div className="text-sm font-bold text-emerald-400 mt-0.5">{currentUser && currentUser.cgpa}</div>
+                                </div>
+                                <div className="bg-white/5 rounded-xl p-2.5">
+                                  <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Attendance</div>
+                                  <div className="text-sm font-bold text-indigo-300 mt-0.5">{currentUser && currentUser.attendance}%</div>
+                                </div>
+                                <div className="bg-white/5 rounded-xl p-2.5">
+                                  <div className="text-[10px] uppercase font-mono tracking-wider text-slate-400">Risk Profile</div>
+                                  <div className={`text-sm font-bold mt-0.5 ${currentUser && currentUser.riskCategory === 'Critical' ? 'text-rose-400' : currentUser && currentUser.riskCategory === 'High' ? 'text-amber-400' : 'text-emerald-400'}`}>
+                                    {currentUser && (currentUser.riskCategory || 'Low')}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Session Telemetry Grid */}
+                            <div className="space-y-3">
+                              <label className="text-xs font-bold text-slate-700 block">Current Session Telemetry & Cloud Status</label>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                                <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                                  <div className="text-[10px] uppercase font-mono text-slate-400">Session Environment</div>
+                                  <div className="font-semibold text-slate-800 mt-1 flex items-center gap-1.5">
+                                    <span>💻</span>
+                                    <span>Web Client (TLS 1.3 / SSL)</span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-500 mt-0.5">Session start: {sessionStartTime}</div>
+                                </div>
+
+                                <div className="p-3 rounded-xl border border-slate-200 bg-slate-50/70">
+                                  <div className="text-[10px] uppercase font-mono text-slate-400">MongoDB Atlas Database</div>
+                                  <div className="font-semibold text-slate-800 mt-1 flex items-center gap-1.5">
+                                    <span className={`w-2 h-2 rounded-full ${mongoStatus && mongoStatus.connected ? 'bg-emerald-500' : 'bg-amber-500'}`}></span>
+                                    <span className="font-mono text-xs">{mongoStatus && mongoStatus.db}.{mongoStatus && mongoStatus.coll}</span>
+                                  </div>
+                                  <div className="text-[11px] text-slate-500 mt-0.5">Cluster: blai.dxi8wl7.mongodb.net</div>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Sign Out Warning Box */}
+                            <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-xs text-rose-900 space-y-1.5">
+                              <div className="flex items-center gap-2 font-bold text-rose-950">
+                                <span>⚠️</span>
+                                <span>Are you sure you want to end this session?</span>
+                              </div>
+                              <p className="text-[11px] text-rose-800 leading-relaxed">
+                                Signing out will immediately lock your Digital Learning Twin and study planner on this workstation. All recent progress has been stored into MongoDB Atlas.
+                              </p>
+                            </div>
+
+                            {/* Action Buttons */}
+                            <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
+                              <button
+                                onClick={() => handleConfirmSignOut(false)}
+                                className="w-full sm:flex-1 py-3 px-5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-700 hover:to-red-700 text-white font-bold text-xs shadow-lg shadow-rose-600/25 transition flex items-center justify-center gap-2 cursor-pointer">
+                                <span>🚪 Confirm Sign Out & End Session</span>
+                              </button>
+                              <button
+                                onClick={() => setActiveTab('overview')}
+                                className="w-full sm:w-auto py-3 px-5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                <span>← Cancel & Keep Signed In</span>
+                              </button>
+                            </div>
+                          </div>
+
+                          {/* Right: Security Best Practices & Fast Persona Switcher */}
+                          <div className="lg:col-span-5 space-y-6">
+                            <div className="bg-slate-900 text-white rounded-3xl p-6 border border-slate-800 shadow-sm space-y-4">
+                              <h4 className="font-bold text-sm flex items-center gap-2 text-white">
+                                <span>🛡️</span>
+                                <span>Campus Terminal Security Guidelines</span>
+                              </h4>
+                              <p className="text-xs text-slate-300 leading-relaxed">
+                                Imperial Tech University recommends students follow standard access hygiene when operating on shared workstations:
+                              </p>
+                              <ul className="text-xs text-slate-300 space-y-2.5">
+                                <li className="flex items-start gap-2">
+                                  <span className="text-emerald-400 font-bold">✓</span>
+                                  <span>Always sign out before leaving computer laboratories or university library desks.</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-emerald-400 font-bold">✓</span>
+                                  <span>Your latest quiz mastery and task checkmarks are securely synced in MongoDB Atlas.</span>
+                                </li>
+                                <li className="flex items-start gap-2">
+                                  <span className="text-emerald-400 font-bold">✓</span>
+                                  <span>Sessions automatically expire after 30 minutes of idle inactivity.</span>
+                                </li>
+                              </ul>
+                            </div>
+
+                            {/* Quick Switch Alternative */}
+                            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 space-y-3">
+                              <h4 className="font-bold text-xs uppercase tracking-wider text-slate-700">
+                                Need to switch to a different account?
+                              </h4>
+                              <p className="text-xs text-slate-500">
+                                You can switch directly without manually entering passwords:
+                              </p>
+                              <div className="space-y-2 pt-1">
+                                <button
+                                  onClick={() => handleQuickSelectStudent(registeredUsers[1])}
+                                  className="w-full p-2.5 rounded-xl border border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 text-left transition flex items-center justify-between cursor-pointer">
+                                  <div className="flex items-center gap-2.5">
+                                    <span className="w-8 h-8 rounded-lg bg-rose-100 text-rose-700 font-bold text-xs flex items-center justify-center">MV</span>
+                                    <div>
+                                      <div className="text-xs font-bold text-slate-800">Marcus Vance</div>
+                                      <div className="text-[10px] text-slate-500">23CS012 · Critical Risk Student</div>
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-indigo-600 font-semibold">Switch →</span>
+                                </button>
+                                <button
+                                  onClick={() => { setCurrentRole('faculty'); setActiveTab('cohort'); }}
+                                  className="w-full p-2.5 rounded-xl border border-slate-200 hover:border-purple-300 hover:bg-purple-50/50 text-left transition flex items-center justify-between cursor-pointer">
+                                  <div className="flex items-center gap-2.5">
+                                    <span className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 font-bold text-xs flex items-center justify-center">EV</span>
+                                    <div>
+                                      <div className="text-xs font-bold text-slate-800">Dr. Evelyn Vance</div>
+                                      <div className="text-[10px] text-slate-500">Faculty Chair / Advisor</div>
+                                    </div>
+                                  </div>
+                                  <span className="text-xs text-purple-600 font-semibold">Switch →</span>
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        /* Signed Out Post-State Card */
+                        <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-lg p-8 sm:p-10 text-center space-y-6 animate-in zoom-in-95 duration-200">
+                          <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-emerald-500 to-teal-500 text-white text-3xl font-bold flex items-center justify-center mx-auto shadow-xl shadow-teal-500/25">
+                            ✓
+                          </div>
+
+                          <div className="space-y-2">
+                            <span className="text-xs font-mono uppercase tracking-widest text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200">
+                              Session Terminated
+                            </span>
+                            <h3 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+                              You Have Signed Out Safely
+                            </h3>
+                            <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto leading-relaxed">
+                              Your academic credentials and active tokens have been cleared from this device. All telemetry was safely persisted to MongoDB Atlas.
+                            </p>
+                          </div>
+
+                          {/* Last signed-out persona chip */}
+                          {lastSignedOutUser && (
+                            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 max-w-md mx-auto text-left flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-700 font-bold text-xs flex items-center justify-center">
+                                  {lastSignedOutUser.name ? lastSignedOutUser.name.split(' ').map(n=>n[0]).join('').slice(0,2).toUpperCase() : 'ST'}
+                                </div>
+                                <div>
+                                  <div className="text-xs font-bold text-slate-900">{lastSignedOutUser.name}</div>
+                                  <div className="text-[11px] text-slate-500">{lastSignedOutUser.rollNumber} · {lastSignedOutUser.department}</div>
+                                </div>
+                              </div>
+                              <span className="text-[10px] font-mono bg-slate-200 text-slate-700 px-2 py-0.5 rounded">
+                                Signed Out
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Action Navigation Options */}
+                          <div className="pt-2 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mx-auto">
+                            {lastSignedOutUser && (
+                              <button
+                                onClick={() => handleReLogin(lastSignedOutUser)}
+                                className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-bold text-xs shadow-md shadow-indigo-600/25 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                                <span>🔑</span>
+                                <span>Log Back In as {lastSignedOutUser.name.split(' ')[0]}</span>
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => { setAuthMode('login'); setAuthError(''); }}
+                              className="w-full py-3 px-4 rounded-xl border border-indigo-200 bg-indigo-50/60 hover:bg-indigo-100 text-indigo-700 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                              <span>🎓</span>
+                              <span>Sign In to Another Account</span>
+                            </button>
+
+                            <button
+                              onClick={() => { setAuthMode('signup'); setAuthError(''); }}
+                              className="w-full py-3 px-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                              <span>✨</span>
+                              <span>Register New Account</span>
+                            </button>
+
+                            <button
+                              onClick={() => { setAuthMode('fastpass'); setAuthError(''); }}
+                              className="w-full py-3 px-4 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-slate-700 font-bold text-xs transition flex items-center justify-center gap-1.5 cursor-pointer">
+                              <span>⚡</span>
+                              <span>1-Click Fast Pass</span>
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Forgot Password Helper Modal */}
+                  {showForgotModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
+                      <div className="bg-white rounded-3xl max-w-sm w-full p-6 space-y-4 shadow-2xl border border-slate-100 animate-in zoom-in-95">
+                        <div className="text-center">
+                          <span className="text-3xl">🔑</span>
+                          <h4 className="font-bold text-base text-slate-900 mt-2">Password Assistance</h4>
+                          <p className="text-xs text-slate-500 mt-1">
+                            For this HacXLerate 2026 hackathon demo, all pre-enrolled accounts utilize the universal password:
+                          </p>
+                          <div className="my-3 p-2.5 rounded-xl bg-slate-100 font-mono font-bold text-indigo-700 text-sm">
+                            password123
+                          </div>
+                          <p className="text-[11px] text-slate-400">
+                            You can also click any of the 1-click Fast-Pass cards to sign in without typing passwords!
+                          </p>
+                        </div>
+                        <button
+                          onClick={() => setShowForgotModal(false)}
+                          className="w-full py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition">
+                          Understood
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 1: Student Academic Overview */}
+              {activeTab === 'overview' && (
+                <>
+                  {/* Top Notification Banner */}
+                  <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start justify-between">
+                    <div className="flex items-start gap-3">
+                      <span className="text-xl">⚠️</span>
+                      <div>
+                        <h4 className="text-sm font-bold text-amber-900">Attendance Warning & Course Risk Flag</h4>
+                        <p className="text-xs text-amber-700 mt-0.5">
+                          In <strong>MA-204 (Applied Linear Algebra)</strong>, your attendance has dropped to <strong>71.0%</strong>, which violates the university 75% statutory threshold. Remediation is required before midterm examinations.
+                        </p>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowCourseModal(initialCourses[0])}
+                      className="px-3 py-1.5 rounded-lg bg-amber-600 text-white text-xs font-medium shrink-0 hover:bg-amber-700 transition">
+                      Diagnose Course
+                    </button>
+                  </div>
+
+                  {/* 4 KPI Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                      <div className="text-xs font-medium text-slate-500">Cumulative GPA</div>
+                      <div className="text-3xl font-extrabold text-slate-800 mt-2">3.78 <span className="text-xs font-normal text-slate-400">/ 4.0</span></div>
+                      <div className="mt-2 text-xs text-emerald-600 font-semibold flex items-center gap-1">
+                        <span>↑ +0.06</span> <span className="text-slate-400 font-normal">Dean's Honor Roll</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                      <div className="text-xs font-medium text-slate-500">Retention Probability</div>
+                      <div className="text-3xl font-extrabold text-indigo-600 mt-2">94.2%</div>
+                      <div className="mt-2 text-xs text-indigo-600 font-semibold">
+                        High Degree Completion Foresight
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                      <div className="text-xs font-medium text-slate-500">Average Attendance</div>
+                      <div className="text-3xl font-extrabold text-slate-800 mt-2">87.5%</div>
+                      <div className="mt-2 text-xs text-amber-600 font-semibold flex items-center gap-1">
+                        <span>⚠️ 1 Subject Under 75%</span>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs">
+                      <div className="text-xs font-medium text-slate-500">Composite Risk Score</div>
+                      <div className="text-3xl font-extrabold text-emerald-600 mt-2">28.4 <span className="text-xs font-normal text-slate-400">/ 100</span></div>
+                      <div className="mt-2 text-xs text-emerald-700 font-semibold">
+                        Low Overall Institutional Risk
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Academic Trajectory Chart & 56-Day Attendance Heatmap */}
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* SVG Trajectory Chart */}
+                    <div className="lg:col-span-2 bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                      <div className="flex items-center justify-between mb-4">
+                        <div>
+                          <h3 className="text-sm font-bold text-slate-800">Academic Score Trajectory vs. Cohort Curve</h3>
+                          <p className="text-xs text-slate-500">Progressive marks over Weeks 1 through 9</p>
+                        </div>
+                        <div className="flex items-center gap-3 text-xs">
+                          <span className="flex items-center gap-1.5"><span className="w-3 h-1 bg-indigo-600 rounded"></span> Alex Rivera</span>
+                          <span className="flex items-center gap-1.5"><span className="w-3 h-1 bg-slate-300 rounded"></span> Cohort Avg</span>
+                        </div>
+                      </div>
+
+                      <div className="h-56 w-full flex items-center justify-center">
+                        <svg viewBox="0 0 500 180" className="w-full h-full">
+                          {/* Grid lines */}
+                          <line x1="40" y1="30" x2="480" y2="30" stroke="#f1f5f9" strokeWidth="1" />
+                          <line x1="40" y1="80" x2="480" y2="80" stroke="#f1f5f9" strokeWidth="1" />
+                          <line x1="40" y1="130" x2="480" y2="130" stroke="#f1f5f9" strokeWidth="1" />
+
+                          {/* Cohort average line */}
+                          <path d="M 50 110 Q 150 100 250 105 T 450 95" fill="none" stroke="#cbd5e1" strokeWidth="2.5" strokeDasharray="4 4" />
+
+                          {/* Student trajectory curve */}
+                          <path d="M 50 95 C 120 70, 200 60, 290 85 S 400 45, 450 40" fill="none" stroke="#4f46e5" strokeWidth="3.5" />
+
+                          {/* Data points */}
+                          <circle cx="50" cy="95" r="4.5" fill="#4f46e5" />
+                          <circle cx="160" cy="65" r="4.5" fill="#4f46e5" />
+                          <circle cx="290" cy="85" r="5" fill="#ef4444" /> {/* Dip for linear algebra */}
+                          <circle cx="380" cy="50" r="4.5" fill="#4f46e5" />
+                          <circle cx="450" cy="40" r="4.5" fill="#4f46e5" />
+
+                          {/* Labels */}
+                          <text x="290" y="105" fontSize="10" fill="#ef4444" textAnchor="middle" fontWeight="bold">Wk 6: SVD Dip (67%)</text>
+                          <text x="450" y="28" fontSize="10" fill="#4f46e5" textAnchor="middle" fontWeight="bold">Current (85.2%)</text>
+                        </svg>
+                      </div>
+                    </div>
+
+                    {/* 56-Day Attendance Heatmap */}
+                    <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800">56-Day Attendance Heatmap</h3>
+                        <p className="text-xs text-slate-500 mb-4">Continuous lecture and lab attendance logs</p>
+                        
+                        <div className="grid grid-cols-8 gap-1.5">
+                          {Array.from({ length: 56 }).map((_, i) => {
+                            const isAbsent = i === 18 || i === 25 || i === 41;
+                            const isLate = i === 9 || i === 33;
+                            return (
+                              <div 
+                                key={i} 
+                                title={`Day ${i + 1}: ${isAbsent ? 'Absent (MA-204)' : isLate ? 'Late (10m)' : 'Present'}`}
+                                className={`h-4 rounded-xs transition-colors ${
+                                  isAbsent ? 'bg-red-400' : isLate ? 'bg-amber-300' : 'bg-emerald-400'
+                                }`} 
+                              />
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 pt-4 border-t border-slate-100">
+                        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-emerald-400"></span> Present (51)</span>
+                        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-amber-300"></span> Late (2)</span>
+                        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded bg-red-400"></span> Absent (3)</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Course Risk Table */}
+                  <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-slate-800">Current Semester Course Risk Matrix</h3>
+                        <p className="text-xs text-slate-500">Evaluates grade deficit, attendance threshold, and homework completion</p>
+                      </div>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-left text-xs">
+                        <thead className="bg-slate-50/80 text-slate-500 font-mono uppercase tracking-wider border-b border-slate-100">
+                          <tr>
+                            <th className="p-4">Course</th>
+                            <th className="p-4">Credits</th>
+                            <th className="p-4">Grade</th>
+                            <th className="p-4">Attendance</th>
+                            <th className="p-4">Assignments</th>
+                            <th className="p-4">Risk Level</th>
+                            <th className="p-4 text-right">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100 font-medium">
+                          {initialCourses.map((c) => (
+                            <tr key={c.code} className="hover:bg-slate-50/50 transition">
+                              <td className="p-4">
+                                <div className="font-bold text-slate-800">{c.code}</div>
+                                <div className="text-slate-500 font-normal">{c.name}</div>
+                              </td>
+                              <td className="p-4">{c.credits}</td>
+                              <td className="p-4">
+                                <span className="font-bold text-slate-800">{c.grade}%</span> ({c.letter})
+                              </td>
+                              <td className="p-4">
+                                <span className={c.attendance < 75 ? 'text-red-600 font-bold' : 'text-slate-700'}>
+                                  {c.attendance}%
+                                </span>
+                              </td>
+                              <td className="p-4">{c.assignments}</td>
+                              <td className="p-4">
+                                <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                                  c.risk === 'Critical' ? 'bg-red-100 text-red-700 border border-red-200' :
+                                  c.risk === 'Moderate' ? 'bg-amber-100 text-amber-700 border border-amber-200' :
+                                  'bg-emerald-100 text-emerald-700 border border-emerald-200'
+                                }`}>
+                                  {c.risk}
+                                </span>
+                              </td>
+                              <td className="p-4 text-right">
+                                <button 
+                                  onClick={() => setShowCourseModal(c)}
+                                  className="px-2.5 py-1 rounded bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-700 font-medium transition">
+                                  View Diagnosis
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* TAB 2: Digital Learning Twin */}
+              {activeTab === 'twin' && (
+                <div className="space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-800">Digital Learning Twin (Topic Mastery Profile)</h2>
+                      <p className="text-xs text-slate-500 mt-1">
+                        Tracks granular concept mastery using exponential moving averages: 
+                        <code className="bg-slate-100 px-1 py-0.5 rounded text-indigo-700 font-mono ml-1">New = 0.70 × Prior + 0.30 × Quiz%</code>
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => { setShowQuizModal(true); setQuizSubmitted(false); setSelectedAnswer(null); }}
+                      className="px-4 py-2 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 shadow-md transition">
+                      ⚡ Take Adaptive Quiz on SVD
+                    </button>
+                  </div>
+
+                  {/* Topic Mastery Grid */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {topics.map(t => (
+                      <div key={t.id} className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-xs flex flex-col justify-between">
+                        <div>
+                          <div className="flex items-center justify-between text-xs font-mono text-slate-400 mb-1">
+                            <span>{t.course}</span>
+                            <span>{t.attempts} Assessments</span>
+                          </div>
+                          <h4 className="font-bold text-slate-800 text-sm mb-3">{t.topic}</h4>
+                        </div>
+
+                        <div>
+                          <div className="flex items-center justify-between text-xs mb-1.5 font-bold">
+                            <span className="text-slate-600">Mastery</span>
+                            <span className={t.mastery !== null ? (t.mastery >= 70 ? 'text-emerald-600' : t.mastery >= 50 ? 'text-amber-600' : 'text-red-600') : 'text-slate-400'}>
+                              {t.mastery !== null ? `${t.mastery}%` : 'Not Assessed'}
+                            </span>
+                          </div>
+
+                          <div className="h-2 w-full bg-slate-100 rounded-full overflow-hidden mb-3">
+                            <div 
+                              className={`h-full rounded-full transition-all duration-700 ${
+                                t.mastery !== null ? (t.mastery >= 70 ? 'bg-emerald-500' : t.mastery >= 50 ? 'bg-amber-500' : 'bg-red-500') : 'bg-slate-200'
+                              }`} 
+                              style={{ width: `${t.mastery || 0}%` }}
+                            />
+                          </div>
+
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                            t.status === 'priority learning gap' ? 'bg-red-100 text-red-700' :
+                            t.status === 'needs practice' ? 'bg-amber-100 text-amber-700' :
+                            t.status === 'provisional mastery' ? 'bg-emerald-100 text-emerald-700' :
+                            'bg-slate-100 text-slate-500'
+                          }`}>
+                            {t.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 3: 7-Day Study Planner */}
+              {activeTab === 'planner' && (
+                <div className="space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-800">Rolling 7-Day Personalized Study Planner</h2>
+                      <p className="text-xs text-slate-500 mt-1">Intelligently allocates 180 study minutes daily prioritised by topic learning gaps.</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-slate-400">Total Planned Study Time</div>
+                      <div className="text-sm font-bold text-indigo-600 font-mono">4.5 Hours / Week</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <div className="p-4 bg-slate-50 border-b border-slate-100 text-xs font-mono uppercase text-slate-500">
+                      Scheduled Micro-Learning Tasks
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {tasks.map(t => (
+                        <div key={t.id} className="p-4 flex items-center justify-between hover:bg-slate-50/50 transition">
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="checkbox" 
+                              checked={t.completed} 
+                              onChange={() => handleTaskToggle(t.id)}
+                              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 cursor-pointer" 
+                            />
+                            <div>
+                              <div className={`text-sm font-semibold ${t.completed ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                                {t.task}
+                              </div>
+                              <div className="text-xs text-slate-500 mt-0.5 flex items-center gap-2">
+                                <span className="font-mono text-indigo-600">{t.day}</span>
+                                <span>•</span>
+                                <span>Planned: {t.plannedMinutes}m</span>
+                                <span>•</span>
+                                <span className="font-semibold text-emerald-600">Logged: {t.actualMinutes}m</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            t.priority === 'High' ? 'bg-red-100 text-red-700' :
+                            t.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
+                            'bg-slate-100 text-slate-600'
+                          }`}>
+                            {t.priority} Priority
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: Faculty Cohort Directory */}
+              {activeTab === 'cohort' && (
+                <div className="space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs flex items-center justify-between">
+                    <div>
+                      <h2 className="text-base font-bold text-slate-800">Department Advisor & Faculty Cohort Directory</h2>
+                      <p className="text-xs text-slate-500 mt-1">Computer Science & Engineering · Semester 6 Roster (Spring 2026)</p>
+                    </div>
+                    <button 
+                      onClick={() => alert("CSV export triggered: Downloading computer_science_s6_risk_report.csv")}
+                      className="px-3.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold transition">
+                      📥 Export Cohort CSV
+                    </button>
+                  </div>
+
+                  <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs overflow-hidden">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-50/80 text-slate-500 font-mono uppercase tracking-wider border-b border-slate-100">
+                        <tr>
+                          <th className="p-4">Student</th>
+                          <th className="p-4">Roll Number</th>
+                          <th className="p-4">CGPA</th>
+                          <th className="p-4">Attendance</th>
+                          <th className="p-4">Average Grade</th>
+                          <th className="p-4">Risk Score</th>
+                          <th className="p-4 text-right">Intervention</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-100 font-medium">
+                        {cohortStudents.map(s => (
+                          <tr key={s.id} className="hover:bg-slate-50/50 transition">
+                            <td className="p-4 font-bold text-slate-800">{s.name}</td>
+                            <td className="p-4 font-mono text-slate-500">{s.roll}</td>
+                            <td className="p-4">{s.cgpa}</td>
+                            <td className="p-4">
+                              <span className={s.attendance < 75 ? 'text-red-600 font-bold' : 'text-slate-700'}>
+                                {s.attendance}%
+                              </span>
+                            </td>
+                            <td className="p-4">{s.grade}%</td>
+                            <td className="p-4">
+                              <span className={`px-2 py-0.5 rounded text-[11px] font-bold ${
+                                s.risk === 'Critical' ? 'bg-red-100 text-red-700 border border-red-200' :
+                                s.risk === 'High' ? 'bg-orange-100 text-orange-700' :
+                                s.risk === 'Moderate' ? 'bg-amber-100 text-amber-700' :
+                                'bg-emerald-100 text-emerald-700'
+                              }`}>
+                                {s.riskScore} ({s.risk})
+                              </span>
+                            </td>
+                            <td className="p-4 text-right">
+                              <button 
+                                onClick={() => setShowInterveneModal(s)}
+                                className="px-2.5 py-1 rounded bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold transition">
+                                Intervene
+                              </button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: Admin CSV Data Quality & Ingestion */}
+              {activeTab === 'admin' && (
+                <div className="space-y-6">
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs">
+                    <h2 className="text-base font-bold text-slate-800">Admin CSV Ingestion & Pre-Commit Validator</h2>
+                    <p className="text-xs text-slate-500 mt-1">
+                      Enforces transactional schema validation and boundary checks before writing to database.
+                    </p>
+                  </div>
+
+                  <div className="bg-white p-6 rounded-2xl border border-slate-200/80 shadow-xs space-y-4">
+                    <h3 className="text-sm font-bold text-slate-800">1. Upload Student Telemetry CSV</h3>
+                    <div className="border-2 border-dashed border-slate-200 rounded-xl p-8 text-center bg-slate-50/50">
+                      <div className="text-3xl mb-2">📄</div>
+                      <div className="text-xs font-semibold text-slate-700">data/sample_students.csv selected</div>
+                      <p className="text-[11px] text-slate-400 mt-1">Contains 7 verified student records with complete telemetry</p>
+                      <button 
+                        onClick={() => { setCsvValidated(true); setCsvCommitted(false); }}
+                        className="mt-4 px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold transition shadow">
+                        🔍 Run Pre-Commit Validation
+                      </button>
+                    </div>
+
+                    {csvValidated && (
+                      <div className="space-y-4 pt-4 border-t border-slate-100">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-xs font-bold text-slate-700">Validation Results: </span>
+                            <span className="text-xs font-semibold text-emerald-600">7 Valid Rows</span>, 
+                            <span className="text-xs font-semibold text-slate-400 ml-1">0 Errors (100% Quality Pass)</span>
+                          </div>
+                          {!csvCommitted ? (
+                            <button 
+                              onClick={() => setCsvCommitted(true)}
+                              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold transition shadow">
+                              💾 Commit 7 Valid Rows to DB
+                            </button>
+                          ) : (
+                            <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg border border-emerald-200">
+                              ✓ Successfully Committed 7 Verified Student Records (Audit Event #104)
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Success Callout */}
+                        <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-800 flex items-center gap-2">
+                          <span className="text-sm font-bold">✓</span>
+                          <span><strong>Schema Verified:</strong> All 7 student records passed roll number uniqueness, CGPA bounds (0.0–4.0), and attendance rules.</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+            </div>
+          </main>
+
+          {/* MODAL 1: Adaptive Quiz Modal */}
+          {showQuizModal && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <span className="text-[10px] font-mono uppercase bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-bold">MA-204 · Diagnostic</span>
+                    <h3 className="font-bold text-slate-800 text-base mt-1">Adaptive Concept Quiz: SVD</h3>
+                  </div>
+                  <button onClick={() => setShowQuizModal(false)} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+                </div>
+
+                {!quizSubmitted ? (
+                  <>
+                    <div className="text-xs text-slate-600 font-medium leading-relaxed">
+                      <strong>Question 1 of 1:</strong> In the Singular Value Decomposition $A = U \Sigma V^T$, what do the non-negative diagonal elements of matrix $\Sigma$ represent?
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      {[
+                        "A. Eigenvalues of matrix A directly",
+                        "B. Singular values of A, which are square roots of eigenvalues of A^T A",
+                        "C. Left singular column vectors",
+                        "D. Determinants of all 2x2 submatrices"
+                      ].map((opt, idx) => (
+                        <button 
+                          key={idx}
+                          onClick={() => setSelectedAnswer(idx)}
+                          className={`w-full text-left p-3 rounded-xl border transition ${
+                            selectedAnswer === idx ? 'bg-indigo-50 border-indigo-600 font-semibold text-indigo-900' : 'border-slate-200 hover:bg-slate-50'
+                          }`}>
+                          {opt}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2">
+                      <button onClick={() => setShowQuizModal(false)} className="px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-500">Cancel</button>
+                      <button 
+                        disabled={selectedAnswer === null}
+                        onClick={handleQuizSubmit}
+                        className="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-semibold transition">
+                        Submit & Calibrate Twin
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="space-y-3 pt-2">
+                    <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-center">
+                      <div className="text-2xl mb-1">🎉</div>
+                      <div className="text-sm font-bold text-emerald-800">100% Correct Score!</div>
+                      <p className="text-xs text-emerald-600 mt-1">
+                        Option B was correct. Singular values are non-negative square roots of the eigenvalues of $A^T A$.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-50 p-3 rounded-xl text-xs space-y-1.5 border border-slate-100">
+                      <div className="text-slate-500">Twin Mastery Recalibration:</div>
+                      <div className="flex items-center justify-between font-mono">
+                        <span>Prior Mastery:</span> <span className="font-bold">42.0%</span>
+                      </div>
+                      <div className="flex items-center justify-between font-mono text-emerald-600 font-bold">
+                        <span>New Calibrated Mastery:</span> <span>59.4% (+17.4%)</span>
+                      </div>
+                      <div className="text-[11px] text-slate-500 pt-1">
+                        Topic status upgraded from <strong>Priority Learning Gap</strong> to <strong>Needs Practice</strong>!
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={() => setShowQuizModal(false)}
+                      className="w-full py-2 bg-indigo-600 text-white rounded-xl text-xs font-semibold">
+                      Done
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 2: Course Diagnostic Modal */}
+          {showCourseModal && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-base">{showCourseModal.code}: {showCourseModal.name}</h3>
+                    <span className="text-xs text-slate-500">{showCourseModal.instructor}</span>
+                  </div>
+                  <button onClick={() => setShowCourseModal(null)} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-800">
+                    <strong>Critical Factor:</strong> Attendance is {showCourseModal.attendance}%. Statutory university regulations require ≥ 75% for exam authorization.
+                  </div>
+
+                  <div>
+                    <h5 className="font-bold text-slate-700 mb-1">Identified Learning Gaps:</h5>
+                    <ul className="list-disc pl-5 text-slate-600 space-y-1">
+                      <li>Singular Value Decomposition (Quiz 3 scored 42%)</li>
+                      <li>Eigenvalue Projections and Orthogonality</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h5 className="font-bold text-slate-700 mb-1">Recommended Remediation:</h5>
+                    <p className="text-slate-600">
+                      Attend Thursday 2 PM Office Hours in Math Rm 304 and complete the 7-day SVD revision drill.
+                    </p>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setShowCourseModal(null)}
+                  className="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition">
+                  Close Diagnostic
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 3: Faculty Intervention Modal */}
+          {showInterveneModal && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 border border-slate-100">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="font-bold text-slate-800 text-base">Advisor Intervention: {showInterveneModal.name}</h3>
+                    <span className="text-xs text-slate-500">Roll: {showInterveneModal.roll} · Risk Score: {showInterveneModal.riskScore}</span>
+                  </div>
+                  <button onClick={() => setShowInterveneModal(null)} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+                </div>
+
+                <div className="space-y-3 text-xs">
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Intervention Type:</label>
+                    <select className="w-full p-2 border border-slate-200 rounded-lg text-xs">
+                      <option>Tutoring Referral (Math Lab)</option>
+                      <option>Mandatory Attendance Meeting</option>
+                      <option>Academic Counseling Check-in</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Follow-up Milestone Date:</label>
+                    <input type="date" defaultValue="2026-04-10" className="w-full p-2 border border-slate-200 rounded-lg text-xs" />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold text-slate-700 mb-1">Advisor Notes:</label>
+                    <textarea 
+                      rows="3" 
+                      defaultValue={`Student has 62.4% attendance. Contacted student for urgent peer tutoring referral.`}
+                      className="w-full p-2 border border-slate-200 rounded-lg text-xs"
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => { alert(`Intervention ticket saved for ${showInterveneModal.name}!`); setShowInterveneModal(null); }}
+                  className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold transition">
+                  Save Intervention Record
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* MODAL 4: AI Copilot Chat Modal */}
+          {showCopilot && (
+            <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50">
+              <div className="bg-white rounded-2xl max-w-xl w-full h-[600px] shadow-2xl flex flex-col border border-slate-100">
+                <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-indigo-50 to-purple-50 rounded-t-2xl">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">✨</span>
+                    <div>
+                      <h3 className="font-bold text-slate-800 text-sm">CampusIQ Academic Copilot</h3>
+                      <span className="text-[10px] text-indigo-600 font-mono">Grounded in verified student records</span>
+                    </div>
+                  </div>
+                  <button onClick={() => setShowCopilot(false)} className="text-slate-400 hover:text-slate-600 text-xl font-bold">×</button>
+                </div>
+
+                <div className="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+                  {copilotMessages.map((m, i) => (
+                    <div key={i} className={`flex ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                      <div className={`max-w-[85%] p-3 rounded-2xl leading-relaxed ${
+                        m.sender === 'user' ? 'bg-indigo-600 text-white font-medium rounded-br-xs' : 'bg-slate-100 text-slate-800 rounded-bl-xs'
+                      }`}>
+                        {m.text}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Quick Prompt Chips */}
+                <div className="p-2 border-t border-slate-100 flex gap-2 overflow-x-auto text-[11px] bg-slate-50/50">
+                  <button 
+                    onClick={() => handleSendCopilot("How can I raise my GPA to 3.90?")}
+                    className="whitespace-nowrap px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                    💡 How to raise GPA to 3.90?
+                  </button>
+                  <button 
+                    onClick={() => handleSendCopilot("Why is MA-204 flagged as critical?")}
+                    className="whitespace-nowrap px-2.5 py-1 rounded-full bg-white border border-slate-200 text-slate-600 hover:bg-indigo-50 hover:text-indigo-600 transition">
+                    ⚠️ Why is MA-204 critical?
+                  </button>
+                </div>
+
+                <div className="p-3 border-t border-slate-100 flex gap-2">
+                  <input 
+                    type="text" 
+                    value={copilotInput} 
+                    onChange={e => setCopilotInput(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleSendCopilot()}
+                    placeholder="Ask your academic advisor a question..." 
+                    className="flex-1 p-2 border border-slate-200 rounded-xl text-xs focus:ring-1 focus:ring-indigo-500 outline-hidden" 
+                  />
+                  <button 
+                    onClick={() => handleSendCopilot()}
+                    className="px-4 py-2 bg-indigo-600 text-white text-xs font-semibold rounded-xl hover:bg-indigo-700 transition">
+                    Send
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+        </div>
+      );
+    }
+
+    class ErrorBoundary extends React.Component {
+      constructor(props) {
+        super(props);
+        this.state = { hasError: false, error: null };
+      }
+      static getDerivedStateFromError(error) {
+        return { hasError: true, error };
+      }
+      componentDidCatch(error, errorInfo) {
+        console.error("CampusIQ ErrorBoundary caught error:", error, errorInfo);
+      }
+      render() {
+        if (this.state.hasError) {
+          return (
+            <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-6">
+              <div className="max-w-md w-full bg-slate-800 p-8 rounded-3xl border border-slate-700 shadow-2xl text-center space-y-4">
+                <span className="text-4xl">⚠️</span>
+                <h2 className="text-lg font-bold text-white">CampusIQ Recovery Mode</h2>
+                <p className="text-xs text-slate-300">A rendering issue occurred. Academic state is preserved.</p>
+                <div className="p-3 bg-slate-950 rounded-xl text-left font-mono text-[11px] text-rose-300 overflow-auto max-h-32">
+                  {this.state.error ? this.state.error.toString() : 'Unknown error'}
+                </div>
+                <button
+                  onClick={() => window.location.reload()}
+                  className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 font-bold text-xs text-white transition cursor-pointer">
+                  Reload Application
+                </button>
+              </div>
+            </div>
+          );
+        }
+        return this.props.children;
+      }
+    }
+
+    const rootElement = document.getElementById('root');
+    if (rootElement) {
+      const root = ReactDOM.createRoot(rootElement);
+      root.render(
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      );
+    }
+  </script>
+</body>
+</html>
